@@ -1,0 +1,260 @@
+<openerp>
+    <data>
+
+		<menuitem id="menu_hr_configuration_accident" 
+		name="Accident"
+		parent="hr.menu_hr_configuration"
+		groups="base.group_hr_manager" 
+		sequence="10"/>
+
+        <record id="view_hr_accident_tree" model="ir.ui.view">
+            <field name="name">hr.accident.tree</field>
+            <field name="model">hr.accident</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="Accident">
+                    <field name="name"/>
+                    <field name="date" attrs="{'readonly':[('state','=','c')]}"/>
+                    <field name="type"/>
+                    <field name="partner_id" attrs="{'readonly':[('state','=','c')]}"/>
+                    <field name="description" attrs="{'readonly':[('state','=','c')]}"/>
+                    <field name="affected_employee" attrs="{'readonly':[('state','=','c')]}"/>
+                    <field name="author_user_id" attrs="{'readonly':[('state','=','c')]}"/>
+                    <field name="procedure_ids" attrs="{'readonly':[('state','=','c')]}"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_hr_accident_filter" model="ir.ui.view">
+            <field name="name">hr.accident.filter</field>
+            <field name="model">hr.accident</field>
+            <field name="type">search</field>
+            <field name="arch" type="xml">
+                <search string="Accident">
+                    <group>
+                        <filter name="current" icon="terp-document-new" domain="[('state','=','o')]" string="Open" help="Open Accidents"/>
+                        <filter icon="terp-camera_test" domain="[('state','=','c')]" string="Closed" help="Closed Accidents"/>
+                        <separator orientation="vertical"/>
+                        <field name="name"/>
+                        <field name="title"/>
+                        <field name="date"/>
+                        <field name="author_user_id"/>
+                        <separator orientation="vertical"/>
+                    </group>
+                    <newline />
+                    <group expand="0" string="Group By...">
+                        <filter string="Affected" icon="terp-personal" domain="[]" context="{'group_by':'affected_employee'}"/>
+                        <filter string="Manager" icon="terp-personal" domain="[]" context="{'group_by':'manager_employee'}"/>
+                        <filter string="Author" icon="terp-personal" domain="[]" context="{'group_by':'author_user_id'}"/>
+                        <separator orientation="vertical"/>
+                        <filter string="Type" icon="terp-personal" domain="[]" context="{'group_by':'type'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>        
+
+        <record id="view_hr_accident_form" model="ir.ui.view">
+            <field name="name">hr.accident.form</field>
+            <field name="type">form</field>
+            <field name="model">hr.accident</field>
+            <field name="arch" type="xml">
+                <form string="Accident">
+                	<field name="title" attrs="{'readonly':[('state','=','c')]}"/>
+                    <group colspan="4" col="4">
+                        <field name="name"/>
+                        <field name="date" attrs="{'readonly':[('state','=','c')]}"/>
+                    </group>
+                    <group colspan="4" col="4">
+                    	<field name="affected_employee" attrs="{'readonly':[('state','=','c')]}" domain="[('active','=',True)]"/>
+                        <field name="manager_employee" attrs="{'readonly':[('state','=','c')]}" domain="[('active','=',True)]"/>
+                        <field name="author_user_id" attrs="{'readonly':[('state','=','c')]}" domain="[('active','=',True)]"/>
+                        <field name="partner_id" attrs="{'readonly':[('state','=','c')]}"/>
+                    </group>
+                    <group colspan="4" col="4">
+                    	<field name="analytic_account_id" />
+                    	<field name="type" />
+                        <field name="date_discharge" attrs="{'invisible':[('type','=','nodischarge')]}" domain="[('active','=',True)]"/>
+                    </group>
+                    <notebook colspan="4">
+                        <page string="Origins">
+                            <field name="origin_ids" nolabel="1" attrs="{'readonly':[('state','=','c')]}"/>
+                        </page>
+                        <page string="Causes">
+                            <field name="cause_ids" nolabel="1" attrs="{'readonly':[('state','=','c')]}"/>
+                        </page>
+                        <page string="Description">
+                            <field name="description" nolabel="1" attrs="{'readonly':[('state','=','c')]}"/>
+                        </page>
+                        <page string="Procedures">
+                            <field name="procedure_ids" nolabel="1" attrs="{'readonly':[('state','=','c')]}" domain="[('group_id','in',('Procedure','Environmental Aspect','Quality Manual','Environment Manual'))]"/>
+                        </page>
+                        <page string="Analysis">
+                            <field name="analysis" nolabel="1" attrs="{'readonly':[('state','=','c')]}"/>
+                        </page>
+                        <page string="Actions">
+                            <group colspan="4">
+                                <field name="immediate_action_id" colspan="4" domain="[('type_action','=','immediate')]" attrs="{'readonly':[('state','=','c')]}"/>
+                                <newline/>
+                                <field name="efficiency_immediate" colspan="4" attrs="{'readonly':[('state','=','c')]}"/>
+                                <separator/>
+                                <field name="corrective_action_id" colspan="4" domain="[('type_action','=','correction')]" attrs="{'readonly':[('state','=','c')]}"/>
+                                <newline/>
+                                <field name="efficiency_corrective" colspan="4" attrs="{'readonly':[('state','=','c')]}"/>
+                                <separator/>
+                                <field name="preventive_action_id" colspan="4" domain="[('type_action','=','prevention')]" attrs="{'readonly':[('state','=','c')]}"/>
+                                <newline/>
+                                <field name="efficiency_preventive" colspan="4" attrs="{'readonly':[('state','=','c')]}"/>
+                            </group>
+                        </page>
+                    </notebook>
+                    <group colspan="4">
+                        <field name="state" select="1" readonly="1"/>
+                        <button name="button_close" string="Close" states="o" type="object" icon="gtk-jump-to"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="open_hr_accident_list">
+            <field name="name">Accidents</field>
+            <field name="res_model">hr.accident</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_hr_accident_tree"/>
+            <field name="search_view_id" ref="view_hr_accident_filter"/>
+            <field name="context">{"search_default_current":1,"search_default_author_user_id":uid}</field>
+        </record>
+
+		<menuitem id="menu_open_accident" 
+			action="open_hr_accident_list" 
+			parent="hr.menu_hr_main" 
+			sequence="20" 
+            groups="base.group_hr_manager,base.group_user"/>
+
+        
+        <!-- Origin -->
+        <record id="view_hr_accident_origin_form" model="ir.ui.view">
+            <field name="name">hr.accident.origin.form</field>
+            <field name="type">form</field>
+            <field name="model">hr.accident.origin</field>
+            <field name="arch" type="xml">
+                <form string="Origins of the Accident">
+                    <group colspan="4" col="6">
+                        <field name="name"/>
+                        <newline/>
+                        <field name="description"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_hr_accident_origin_tree" model="ir.ui.view">
+            <field name="name">hr.accident.origin.tree</field>
+            <field name="model">hr.accident.origin</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="Origins">
+                    <field name="name"/>
+                    <field name="description"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_hr_accident_origin_filter" model="ir.ui.view">
+            <field name="name">Origins</field>
+            <field name="model">hr.accident.origin</field>
+            <field name="type">search</field>
+            <field name="arch" type="xml">
+                <search string="Orígenes">
+                    <field name="name"/>
+                </search>
+             </field>
+         </record>
+
+        <record id="open_hr_accident_origin_list" model="ir.actions.act_window">
+            <field name="name">Origins</field>
+            <field name="res_model">hr.accident.origin</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" eval="False"/>
+            <field name="search_view_id" ref="view_hr_accident_origin_filter"/>
+        </record>
+
+        <menuitem id="menu_open_hr_accident_origin" 
+            action="open_hr_accident_origin_list" 
+            parent="menu_hr_configuration_accident" 
+            sequence="20" 
+            groups="base.group_hr_manager"/>
+
+        
+        <!-- Cause -->
+        <record id="view_hr_accident_cause_form" model="ir.ui.view">
+            <field name="name">hr.accident.cause.form</field>
+            <field name="type">form</field>
+            <field name="model">hr.accident.cause</field>
+            <field name="arch" type="xml">
+                <form string="Causes of the Accident">
+                    <group colspan="4" col="6">
+                        <field name="name"/>
+                        <newline/>
+                        <field name="description"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_hr_accident_cause_tree" model="ir.ui.view">
+            <field name="name">hr.accident.cause.tree</field>
+            <field name="model">hr.accident.cause</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="Causes">
+                    <field name="name"/>
+                    <field name="description"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_hr_accident_cause_filter" model="ir.ui.view">
+            <field name="name">Causes</field>
+            <field name="model">hr.accident.cause</field>
+            <field name="type">search</field>
+            <field name="arch" type="xml">
+                <search string="Causes">
+                    <field name="name"/>
+                </search>
+             </field>
+         </record>
+
+        <record id="open_hr_accident_cause_list" model="ir.actions.act_window">
+            <field name="name">Causas</field>
+            <field name="res_model">hr.accident.cause</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" eval="False"/>
+            <field name="search_view_id" ref="view_hr_accident_cause_filter"/>
+        </record>
+
+        <menuitem id="menu_open_hr_accident_cause" 
+            action="open_hr_accident_cause_list" 
+            parent="menu_hr_configuration_accident" 
+            sequence="30" 
+            groups="base.group_hr_manager"/>
+            
+        <!-- Employee-Accidents form -->
+		<record model="ir.ui.view" id="view_employee_accident_form">
+		    <field name="name">hr.employee.form.accident</field>
+		    <field name="model">hr.employee</field>
+		    <field name="inherit_id" ref="hr.view_employee_form"/>
+		    <field name="type">form</field>
+		    <field name="arch" type="xml">
+				<page string="Notes" position="before">
+					<page string="Accidents">
+						<field name="accident_ids" colspan="4" nolabel="1"/>
+					</page>
+				</page>
+		    </field>
+		</record>
+
+    </data>
+</openerp>
